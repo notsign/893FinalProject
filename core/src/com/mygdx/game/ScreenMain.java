@@ -22,7 +22,7 @@ import com.badlogic.gdx.physics.box2d.World;
 /**
  * Created by k9sty on 2016-03-12.
  */
-public class ScrTest implements Screen, InputProcessor {
+public class ScreenMain implements Screen, InputProcessor {
 	Game game;
 	World world;
 	Map map;
@@ -34,10 +34,9 @@ public class ScrTest implements Screen, InputProcessor {
     int i;
     EnemySpawner[] arSpawner;
     Vector2[] arV2ESpwn;
-    private float deltaTime;
     private float timer;
 
-	ScrTest(Game game) {
+	ScreenMain(Game game) {
 		this.game = game;
 
 		spriteBatch = new SpriteBatch();
@@ -59,36 +58,16 @@ public class ScrTest implements Screen, InputProcessor {
 				Fixture fixtureA = contact.getFixtureA();
 				Fixture fixtureB = contact.getFixtureB();
 
-				if (fixtureA.isSensor() && fixtureB.isSensor())
-					return; // Who cares about that?
-
 				if (fixtureA == player.footSensor)
 					player.isGrounded = true;
 
 				else if (fixtureB == player.footSensor)
 					player.isGrounded = true;
-
-
-				/*if (fixtureA.getFilterData().categoryBits == 5 && fixtureB.getFilterData().categoryBits == 16
-                        || fixtureA.getFilterData().categoryBits == 16 && fixtureB.getFilterData().categoryBits == 5) {
-					//http://box2d.org/manual.html#_Toc258082970 source for the way mask bits and categoryBits worked
-					//if (fixtureA.getFilterData().categoryBits == 5 && fixtureB.getFilterData().categoryBits == 16) {
-					if (player.nCurHealth > 0) {
-						player.nCurHealth -= 1;
-						System.out.println("***************************************************************************" + player.nCurHealth);
-					} else {
-						System.out.println("You are dead!");
-					}
-				}*/
             }
 			@Override
 			public void endContact (Contact contact){
 				Fixture fixtureA = contact.getFixtureA();
 				Fixture fixtureB = contact.getFixtureB();
-				// only checking if one of the fixtures is the foot sensor - if the foot sensor is one of the contacts,
-				// then the other fixture is something it's allowed to collide with (maskBit = 1)
-				if (fixtureA.isSensor() && fixtureB.isSensor())
-					return; // Who cares about that?
 
 				if (fixtureA == player.footSensor)
 					player.isGrounded = false;
@@ -124,8 +103,8 @@ public class ScrTest implements Screen, InputProcessor {
 	}
 
 	private void initializePlayer() {
-        player = new Player(world, map.getSpawnpoint(), "player");
-        player.nCurHealth = player.nFinHealth;
+        player = new Player(world, map.getSpawnpoint());
+        player.health = Player.MAX_HEALTH;
 	}
 
     private void initializeEnemySpawner() {
@@ -145,7 +124,7 @@ public class ScrTest implements Screen, InputProcessor {
 
 	@Override
 	public void render(float delta) {
-        deltaTime = Gdx.graphics.getDeltaTime();
+        float deltaTime = Gdx.graphics.getDeltaTime();
         timer += 1 * deltaTime;
         Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -201,9 +180,8 @@ public class ScrTest implements Screen, InputProcessor {
 
 	@Override
 	public boolean keyDown(int keycode) {
-        if (keycode == Input.Keys.X && player.isGrounded) {
+        if (keycode == Input.Keys.Z && player.isGrounded) {
             player.jump();
-            player.isGrounded = false;
         }
         return false;
 	}

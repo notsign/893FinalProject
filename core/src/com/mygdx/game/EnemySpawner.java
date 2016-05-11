@@ -43,7 +43,7 @@ public class EnemySpawner {
     }
 
     void initializeEnemy() {
-        arObFastEnemy[e - 1] = new FastEnemy(world, v2ESpawnP, "player"); // should be "enemy", but we don't have the files yet
+        arObFastEnemy[e - 1] = new FastEnemy(world, v2ESpawnP); // should be "enemy", but we don't have the files yet
     }
 
     void draw(int e, SpriteBatch sb) {
