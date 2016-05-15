@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
@@ -19,9 +20,13 @@ import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.physics.box2d.World;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+
 /**
  * Created by k9sty on 2016-03-12.
  */
+
 public class ScreenMain implements Screen, InputProcessor {
 	Game game;
 	World world;
@@ -31,44 +36,50 @@ public class ScreenMain implements Screen, InputProcessor {
 	TiledMapRenderer tiledMapRenderer;
 	Player player;
 	SpriteBatch spriteBatch;
-    int i;
-    EnemySpawner[] arSpawner;
-    Vector2[] arV2ESpwn;
-    private float timer;
+	EnemySpawner[] arSpawner;
+	ArrayList<Bullet> bullets;
 
 	ScreenMain(Game game) {
 		this.game = game;
 
 		spriteBatch = new SpriteBatch();
+		bullets = new ArrayList<Bullet>();
 
 		initializeWorld();
 		initializeCamera();
 		initializePlayer();
-        initializeEnemySpawner();
-    }
+		initializeEnemySpawner();
+	}
 
 	private void initializeWorld() {
-		world = new World(new Vector2(0, -200), true);
+		world = new World(new Vector2(0f, -200f), true);
 		// create contact listener in the class itself so i don't need to turn every variable into a static when i call it
 		world.setContactListener(new ContactListener() {
 			@Override
 			public void beginContact(Contact contact) {
-				// Unlike presolve, beginContact is called for sensor. If you want to move the
+				// Unlike presolve, beginContact is called for sensors. If you want to move the
 				// other hit detection code to presolve, go ahead, just leave the sensor code
 				Fixture fixtureA = contact.getFixtureA();
 				Fixture fixtureB = contact.getFixtureB();
 
+				if (fixtureA.isSensor() && fixtureB.isSensor())
+					return;
+
 				if (fixtureA == player.footSensor)
 					player.isGrounded = true;
 
 				else if (fixtureB == player.footSensor)
 					player.isGrounded = true;
-            }
+			}
+
 			@Override
-			public void endContact (Contact contact){
+			public void endContact(Contact contact) {
 				Fixture fixtureA = contact.getFixtureA();
 				Fixture fixtureB = contact.getFixtureB();
 
+				if (fixtureA.isSensor() && fixtureB.isSensor())
+					return;
+
 				if (fixtureA == player.footSensor)
 					player.isGrounded = false;
 
@@ -77,18 +88,42 @@ public class ScreenMain implements Screen, InputProcessor {
 			}
 
 			@Override
-			public void preSolve (Contact contact, Manifold oldManifold){
+			public void preSolve(Contact contact, Manifold oldManifold) {
 
 			}
 
 			@Override
-			public void postSolve (Contact contact, ContactImpulse impulse){
+			public void postSolve(Contact contact, ContactImpulse impulse) {
+				Fixture fa = contact.getFixtureA();
+				Fixture fb = contact.getFixtureB();
 
+				Fixture enemyFixture = (fa.getFilterData().groupIndex == -2) ? fa : (fb.getFilterData().groupIndex == -2) ? fb : null;
+				Fixture bulletFixture = (fa.getFilterData().groupIndex == -1) ? fa : (fb.getFilterData().groupIndex == -1) ? fb : null;
+
+				if (enemyFixture != null && bulletFixture != null) { // An enemy and a bullet collided
+					// Find the enemy that owns this fixture
+					for (FastEnemy fastEnemy : arSpawner[0].fastEnemies) {
+						if (fastEnemy.body.equals(enemyFixture.getBody())) {
+							fastEnemy.isAlive = false;
+							break;
+						}
+					}
+				}
+
+				if (bulletFixture != null) { // A bullet hit something
+					// Find the bullet that owns the fixture
+					for (Bullet bullet : bullets) {
+						if (bullet.body.equals(bulletFixture.getBody())) {
+							bullet.hasContacted = true;
+							break;
+						}
+					}
+				}
 			}
 		});
 
-		map = new Map(world, "debugroom");
 		// pass world and desired map
+		map = new Map(world, "debugroom");
 	}
 
 	private void initializeCamera() {
@@ -103,16 +138,15 @@ public class ScreenMain implements Screen, InputProcessor {
 	}
 
 	private void initializePlayer() {
-        player = new Player(world, map.getSpawnpoint());
-        player.health = Player.MAX_HEALTH;
+		player = new Player(world, map.getPlayerSpawnPoint());
 	}
 
-    private void initializeEnemySpawner() {
-        arV2ESpwn = map.getEnemySpawn();
-        arSpawner = new EnemySpawner[map.nSpawners];
-        for (i = 0; i < arSpawner.length; i++) {
-            arSpawner[i] = new EnemySpawner(world, arV2ESpwn[i]);
-        }
+	private void initializeEnemySpawner() {
+		Vector2[] arEnemySpawnPoints = map.getEnemySpawnPoints();
+		arSpawner = new EnemySpawner[map.nSpawners];
+		for (int i = 0; i < arSpawner.length; i++) {
+			arSpawner[i] = new EnemySpawner(world, arEnemySpawnPoints[i]);
+		}
 
 	}
 
@@ -124,32 +158,62 @@ public class ScreenMain implements Screen, InputProcessor {
 
 	@Override
 	public void render(float delta) {
-        float deltaTime = Gdx.graphics.getDeltaTime();
-        timer += 1 * deltaTime;
-        Gdx.gl.glClearColor(0, 0, 0, 1);
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-		world.step(1 / 60f, 6, 2);
-		camera.position.set(player.getPosition());
-		camera.update();
+		// Update all our stuff before rendering
+		player.bulletCooldown--;
+		player.move();
+
+		for (EnemySpawner enemySpawner: arSpawner)
+			enemySpawner.update(player.getPosition());
+
+		world.step(1 / 60f, 6, 2); // Update our world
+
+		clean(); // Remove dead enemies and collided bullets
+
+		camera.position.set(new Vector3(player.getPosition().x, player.getPosition().y, 0f)); // Center the screen on the player
+		camera.update(); // Lol idk
+
+		// Rendering things...
+		Gdx.gl.glClearColor(0, 0, 0, 1);
+		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT); // Clear the screen
+
 		tiledMapRenderer.setView(camera);
-		tiledMapRenderer.render();
-		debugRenderer.render(world, camera.combined);
+		tiledMapRenderer.render(); // Render the map
+		debugRenderer.render(world, camera.combined); // Render the outlines on objects
 
 		spriteBatch.setProjectionMatrix(camera.combined);
 		// set the projection matrix as the camera so the tile layer on the map lines up with the bodies
 		// if this line wasn't here it wouldn't scale down
 		spriteBatch.begin();
 		player.draw(spriteBatch);
-        for (i = 0; i < arSpawner.length; i++) {
-            arSpawner[i].update(player.getPosition().x, player.getPosition().y, arV2ESpwn[i], timer);
-            if (arSpawner[i].bSpawn) {
-                arSpawner[i].draw(arSpawner[i].e, spriteBatch);
-            }
-        }
-        spriteBatch.end();
+		for(EnemySpawner enemySpawner : arSpawner)
+			enemySpawner.draw(spriteBatch);
 
-		player.move();
+		spriteBatch.end();
+	}
 
+	private void clean() {
+		// We have to remove stuff here instead of in the contact listener because it will crash
+		// because (my guess) of a ConcurrentModificationException.
+
+		Iterator<Bullet> bulletIterator = bullets.iterator();
+		while (bulletIterator.hasNext()) {
+			Bullet b = bulletIterator.next();
+			if (b.hasContacted) {
+				world.destroyBody(b.body);
+				bulletIterator.remove();
+			}
+		}
+
+		for (EnemySpawner enemySpawner : arSpawner) {
+			Iterator<FastEnemy> enemyIterator = enemySpawner.fastEnemies.iterator();
+			while (enemyIterator.hasNext()) {
+				FastEnemy enemy = enemyIterator.next();
+				if (!enemy.isAlive) {
+					world.destroyBody(enemy.body);
+					enemyIterator.remove();
+				}
+			}
+		}
 	}
 
 	@Override
@@ -180,18 +244,17 @@ public class ScreenMain implements Screen, InputProcessor {
 
 	@Override
 	public boolean keyDown(int keycode) {
-        if (keycode == Input.Keys.Z && player.isGrounded) {
-            player.jump();
-        }
-        return false;
+		// TODO: Should this be moved to player class as well?
+		if (keycode == Input.Keys.X && player.bulletCooldown <= 0) {
+			bullets.add(new Bullet(world, player.getPosition(), player.bRight));
+			player.bulletCooldown = 30;
+		}
+		return false;
 	}
 
 	@Override
 	public boolean keyUp(int keycode) {
-        if (keycode == com.badlogic.gdx.Input.Keys.LEFT || keycode == com.badlogic.gdx.Input.Keys.RIGHT) {
-            player.stop();
-        }
-        return false;
+		return false;
 	}
 
 	@Override

@@ -6,7 +6,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.Fixture;
@@ -18,9 +17,23 @@ import com.badlogic.gdx.physics.box2d.World;
  * Created by k9sty on 2016-03-12.
  */
 
+// This is the ideal inheritance plan:
+//Entity:
+//  CharacterEntity:
+//	  Player
+//	  Enemies, etc.
+//  Spawner
+//  Projectiles:
+//    Bullets, etc.
+
+// K: If you're wondering where the object defs went, there is zero reason to save them as anything
+// other than function variables. They serve no purpose other than to clutter up the namespace.
+// Once they are passed to body.createFixture, they are COPIED, not referenced, meaning you cannot
+// modify the fixture's data after without accessing the fixture itself.
+
 public class Entity {
     Body body;
-    Fixture bodyFixture, footSensor;
+    Fixture fixture, footSensor;
     Animation aniIdle, aniRun;
 	World world;
 
@@ -60,6 +73,7 @@ public class Entity {
         bodyDef.type = BodyDef.BodyType.DynamicBody;
 		bodyDef.fixedRotation = true;
         body = world.createBody(bodyDef);
+		body.setUserData("entity");
 
         shape.setAsBox(width / 4f, height / 4f);
 
@@ -67,7 +81,7 @@ public class Entity {
         fixtureDef.shape = shape;
         fixtureDef.friction = 1f;
         body.setSleepingAllowed(false);
-        bodyFixture = body.createFixture(fixtureDef);
+        fixture = body.createFixture(fixtureDef);
         shape.dispose();
     }
 
@@ -75,9 +89,9 @@ public class Entity {
         PolygonShape shape = new PolygonShape();
 
         TextureRegion trPlayer = aniIdle.getKeyFrame(0f);
-        int width = trPlayer.getRegionWidth();
+        int width = trPlayer.getRegionWidth(), height = trPlayer.getRegionHeight();
 
-        shape.setAsBox(width / 8f, 0.2f, new Vector2(body.getLocalCenter().x, body.getLocalCenter().y - 10f), 0f);
+        shape.setAsBox(width / 8f, 0.6f, new Vector2(body.getLocalCenter().x, body.getLocalCenter().y - height / 4f), 0f);
 
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = shape;
@@ -88,8 +102,8 @@ public class Entity {
         shape.dispose();
     }
 
-    Vector3 getPosition() {
-        return new Vector3(body.getPosition().x, body.getPosition().y, 0f);
+    Vector2 getPosition() {
+        return body.getPosition();
     }
 
     void draw(SpriteBatch sb) {
