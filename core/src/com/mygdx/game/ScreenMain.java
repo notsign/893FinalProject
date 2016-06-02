@@ -22,28 +22,31 @@ import com.badlogic.gdx.physics.box2d.World;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created by k9sty on 2016-03-12.
  */
 
-public class ScreenMain implements Screen, InputProcessor {
+public class ScreenMain implements Screen {
 	Game game;
 	World world;
 	Map map;
 	OrthographicCamera camera;
 	Box2DDebugRenderer debugRenderer;
 	TiledMapRenderer tiledMapRenderer;
-	Player player;
 	SpriteBatch spriteBatch;
-	EnemySpawner[] arSpawner;
-	ArrayList<Bullet> bullets;
+
+	Player player;
+	List<Entity> entityList;
+	List<Entity> entityBuffer;
 
 	ScreenMain(Game game) {
 		this.game = game;
 
 		spriteBatch = new SpriteBatch();
-		bullets = new ArrayList<Bullet>();
+		entityList = new ArrayList<Entity>();
+		entityBuffer = new ArrayList<Entity>(); // So updating entities can add entities to the list
 
 		initializeWorld();
 		initializeCamera();
@@ -55,10 +58,9 @@ public class ScreenMain implements Screen, InputProcessor {
 		world = new World(new Vector2(0f, -200f), true);
 		// create contact listener in the class itself so i don't need to turn every variable into a static when i call it
 		world.setContactListener(new ContactListener() {
-			@Override
 			public void beginContact(Contact contact) {
-				// Unlike presolve, beginContact is called for sensors. If you want to move the
-				// other hit detection code to presolve, go ahead, just leave the sensor code
+				// K: Sensor code must be here!!
+				// Sensor collisions aren't honoured in postSolve
 				Fixture fixtureA = contact.getFixtureA();
 				Fixture fixtureB = contact.getFixtureB();
 
@@ -94,30 +96,24 @@ public class ScreenMain implements Screen, InputProcessor {
 
 			@Override
 			public void postSolve(Contact contact, ContactImpulse impulse) {
-				Fixture fa = contact.getFixtureA();
-				Fixture fb = contact.getFixtureB();
+				Object udata1 = contact.getFixtureA().getUserData();
+				Object udata2 = contact.getFixtureB().getUserData();
 
-				Fixture enemyFixture = (fa.getFilterData().groupIndex == -2) ? fa : (fb.getFilterData().groupIndex == -2) ? fb : null;
-				Fixture bulletFixture = (fa.getFilterData().groupIndex == -1) ? fa : (fb.getFilterData().groupIndex == -1) ? fb : null;
+				// We set userdata to the this pointer in these classes
+				Bullet bullet = (udata1 instanceof Bullet) ? (Bullet)udata1
+						: (udata2 instanceof Bullet) ? (Bullet)udata2
+						: null;
 
-				if (enemyFixture != null && bulletFixture != null) { // An enemy and a bullet collided
-					// Find the enemy that owns this fixture
-					for (FastEnemy fastEnemy : arSpawner[0].fastEnemies) {
-						if (fastEnemy.body.equals(enemyFixture.getBody())) {
-							fastEnemy.isAlive = false;
-							break;
-						}
-					}
+				FastEnemy enemy = (udata1 instanceof FastEnemy) ? (FastEnemy)udata1
+						: (udata2 instanceof FastEnemy) ? (FastEnemy)udata2
+						: null;
+
+				if (enemy != null && bullet != null && !bullet.hasContacted) { // Enemy colliding with bullet
+					enemy.isAlive = false;
 				}
 
-				if (bulletFixture != null) { // A bullet hit something
-					// Find the bullet that owns the fixture
-					for (Bullet bullet : bullets) {
-						if (bullet.body.equals(bulletFixture.getBody())) {
-							bullet.hasContacted = true;
-							break;
-						}
-					}
+				if (bullet != null) {
+					bullet.hasContacted = true;
 				}
 			}
 		});
@@ -138,32 +134,33 @@ public class ScreenMain implements Screen, InputProcessor {
 	}
 
 	private void initializePlayer() {
-		player = new Player(world, map.getPlayerSpawnPoint());
+		player = new Player(world, map.getPlayerSpawnPoint(), entityBuffer);
+		entityList.add(player);
 	}
 
 	private void initializeEnemySpawner() {
 		Vector2[] arEnemySpawnPoints = map.getEnemySpawnPoints();
-		arSpawner = new EnemySpawner[map.nSpawners];
-		for (int i = 0; i < arSpawner.length; i++) {
-			arSpawner[i] = new EnemySpawner(world, arEnemySpawnPoints[i]);
+		for (int i = 0; i < arEnemySpawnPoints.length; i++) {
+			entityList.add(new EnemySpawner(world, entityBuffer, player, arEnemySpawnPoints[i], 5));
 		}
-
 	}
-
 
 	@Override
 	public void show() {
-		Gdx.input.setInputProcessor(this);
+
 	}
 
 	@Override
 	public void render(float delta) {
-		// Update all our stuff before rendering
-		player.bulletCooldown--;
-		player.move();
+		for (Entity entity : entityList)
+			entity.update();
 
-		for (EnemySpawner enemySpawner: arSpawner)
-			enemySpawner.update(player.getPosition());
+		Iterator<Entity> entityBufferIterator = entityBuffer.iterator();
+		while (entityBufferIterator.hasNext()) {
+			Entity entity = entityBufferIterator.next();
+			entityList.add(entity);
+			entityBufferIterator.remove();
+		}
 
 		world.step(1 / 60f, 6, 2); // Update our world
 
@@ -184,34 +181,24 @@ public class ScreenMain implements Screen, InputProcessor {
 		// set the projection matrix as the camera so the tile layer on the map lines up with the bodies
 		// if this line wasn't here it wouldn't scale down
 		spriteBatch.begin();
-		player.draw(spriteBatch);
-		for(EnemySpawner enemySpawner : arSpawner)
-			enemySpawner.draw(spriteBatch);
+		for (Entity entity : entityList)
+			entity.render(spriteBatch);
 
 		spriteBatch.end();
 	}
 
 	private void clean() {
 		// We have to remove stuff here instead of in the contact listener because it will crash
-		// because (my guess) of a ConcurrentModificationException.
+		// because of (my guess) a ConcurrentModificationException.
 
-		Iterator<Bullet> bulletIterator = bullets.iterator();
-		while (bulletIterator.hasNext()) {
-			Bullet b = bulletIterator.next();
-			if (b.hasContacted) {
-				world.destroyBody(b.body);
-				bulletIterator.remove();
-			}
-		}
+		Iterator<Entity> entityIterator = entityList.iterator();
+		while (entityIterator.hasNext()) {
+			Entity entity = entityIterator.next();
 
-		for (EnemySpawner enemySpawner : arSpawner) {
-			Iterator<FastEnemy> enemyIterator = enemySpawner.fastEnemies.iterator();
-			while (enemyIterator.hasNext()) {
-				FastEnemy enemy = enemyIterator.next();
-				if (!enemy.isAlive) {
-					world.destroyBody(enemy.body);
-					enemyIterator.remove();
-				}
+			// If the entity reports that it should be destroyed, grant its wish
+			if (entity.shouldBeDestroyed()) {
+				entity.destroy();
+				entityIterator.remove();
 			}
 		}
 	}
@@ -239,51 +226,5 @@ public class ScreenMain implements Screen, InputProcessor {
 	@Override
 	public void dispose() {
 
-	}
-
-
-	@Override
-	public boolean keyDown(int keycode) {
-		// TODO: Should this be moved to player class as well?
-		if (keycode == Input.Keys.X && player.bulletCooldown <= 0) {
-			bullets.add(new Bullet(world, player.getPosition(), player.bRight));
-			player.bulletCooldown = 30;
-		}
-		return false;
-	}
-
-	@Override
-	public boolean keyUp(int keycode) {
-		return false;
-	}
-
-	@Override
-	public boolean keyTyped(char character) {
-		return false;
-	}
-
-	@Override
-	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-		return false;
-	}
-
-	@Override
-	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-		return false;
-	}
-
-	@Override
-	public boolean touchDragged(int screenX, int screenY, int pointer) {
-		return false;
-	}
-
-	@Override
-	public boolean mouseMoved(int screenX, int screenY) {
-		return false;
-	}
-
-	@Override
-	public boolean scrolled(int amount) {
-		return false;
 	}
 }

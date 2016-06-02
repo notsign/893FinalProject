@@ -9,38 +9,41 @@ import com.badlogic.gdx.physics.box2d.World;
  */
 
 //more types of enemies will be added
-public class FastEnemy extends Entity {
+public class FastEnemy extends CharacterEntity {
+	Player player; // Our own reference to the player
 	boolean isAlive;
 
-    FastEnemy(World world, Vector2 spawnposition) {
-        super(world, spawnposition, "player"); // No sprite for enemy yet :c
+	FastEnemy(World world, Player player, Vector2 spawnposition) {
+		super(world, spawnposition, "player"); // No sprite for enemy yet :c
 
-        body.setUserData("fast_enemy");
+		this.player = player;
+
 		isAlive = true;
 
 		Filter filter = new Filter();
 		filter.categoryBits = 8;
 		filter.groupIndex = -2;
-		filter.maskBits = 1 | 2 | 4; // Ground, player and bullets
+		filter.maskBits = 1 | 2 | 4; // Collide with terrain, player and bullets
 		fixture.setFilterData(filter);
-    }
 
-    void move(float fPlayerX) {
-		// Causes enemies to jump all the time, not worth fixing as Don will update with his enemy
-		// AI soon.
-        //if (Math.abs(body.getLinearVelocity().x) < 0.1f) {
-        //    jump();
-        //    isIdle = true;
-        //}
+		Filter footSensorFilter = new Filter();
+		filter.maskBits = 1 | 2; // Jump off terrain and player
+		footSensor.setFilterData(footSensorFilter);
+	}
 
-        if (fPlayerX < body.getPosition().x) {
-            body.setLinearVelocity(-50f, body.getLinearVelocity().y);
-            bRight = false;
-            isIdle = false;
-        } else if (fPlayerX > body.getPosition().x) {
-            body.setLinearVelocity(50f, body.getLinearVelocity().y);
-            bRight = true;
-            isIdle = false;
-        }
-    }
+	public void update() {
+		if (player.body.getPosition().x < body.getPosition().x) {
+			body.setLinearVelocity(-50f, body.getLinearVelocity().y);
+			bRight = false;
+			isIdle = false;
+		} else if (player.body.getPosition().x > body.getPosition().x) {
+			body.setLinearVelocity(50f, body.getLinearVelocity().y);
+			bRight = true;
+			isIdle = false;
+		}
+	}
+
+	public boolean shouldBeDestroyed(){
+		return !isAlive;
+	}
 }

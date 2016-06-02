@@ -10,57 +10,61 @@ import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created by Rueban Rasaselvan on 03/04/2016.
  */
 
-// K: For what it's doing, this should really be called something along the lines of 'EnemyManager'
-
-public class EnemySpawner {
+public class EnemySpawner implements Entity {
 	World world;
 	Vector2 position;
-	//can be set to spawn any number of enemies
-	//not able to set custom number of enemies for each spawner yet
-	public ArrayList<FastEnemy> fastEnemies;
-	int elapsedtime = 0;
+	List<Entity> entityBuffer; // Reference to the main entityList
+	int spawnTimer;
+	int maxEnemies;
+	Player player;
 
-	EnemySpawner(World world, Vector2 position) {
+	EnemySpawner(World world, List<Entity> entityBuffer, Player player, Vector2 position, int maxEnemies) {
 		this.world = world;
+		this.entityBuffer = entityBuffer;
+		this.player = player;
 		this.position = position;
-
-		fastEnemies = new ArrayList<FastEnemy>();
+		this.maxEnemies = maxEnemies;
+		spawnTimer = 0;
 	}
 
 	void createEnemy() {
-		fastEnemies.add(new FastEnemy(world, position));
+		entityBuffer.add(new FastEnemy(world, player, position));
 	}
 
-	void draw(SpriteBatch spriteBatch) {
-		//only the enemies that have already been spawned in are updated
-		for (FastEnemy fastEnemy : fastEnemies) {
-			fastEnemy.draw(spriteBatch);
-		}
+	public void render(SpriteBatch spriteBatch) {
+
 	}
 
-	public void update(Vector2 playerpos) {
-		float playerDist = playerpos.dst(position);
-		//only if the player enters within the region of radius 500 from the spawner block
-		//then the enemies will spawn.
-		elapsedtime++;
+	public void update() {
+		float playerDist = position.dst(player.getPosition());
+		// Only if the player enters within the region of radius 500 from the spawner block
+		// then the enemies will spawn.
+		spawnTimer++;
 		if (playerDist <= 500f) {
-			//every 5 seconds a new enemy is spawned
-			if (elapsedtime >= 50) {
-				elapsedtime = 0;
-				if (fastEnemies.size() < 5)
-					createEnemy();
+			//every second a new enemy is spawned
+			if (spawnTimer >= 60) {
+				spawnTimer = 0;
+				createEnemy();
 			}
 		}
+	}
 
-		for (FastEnemy fastEnemy : fastEnemies) {
-			fastEnemy.move(playerpos.x);
-		}
+	public boolean shouldBeDestroyed(){
+		return false; //lol
+	}
+
+	public void destroy(){
+		//lol
+	}
+
+	public Body getBody(){
+		return null;
 	}
 }
-
-

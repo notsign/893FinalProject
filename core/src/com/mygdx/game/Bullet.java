@@ -1,5 +1,6 @@
 package com.mygdx.game;
 
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
@@ -13,22 +14,21 @@ import com.badlogic.gdx.physics.box2d.World;
  * Created by Kevin on 13/05/2016.
  */
 
-// TODO: Extend off entity somehow
-
-public class Bullet {
+public class Bullet implements Entity {
 	Body body;
-	Fixture bodyFixture;
+	Fixture fixture;
 	World world;
+	Entity owner;
 
 	boolean hasContacted;
 
-	protected Bullet(World world, Vector2 playerpos, boolean facingRight) {
+	protected Bullet(World world, Entity owner, Vector2 position, boolean facingRight) {
 		this.world = world;
-		setBodyDef(playerpos);
-		setFixtureDef();
-		setVelocity(facingRight);
+		this.owner = owner;
 
-		body.setUserData("bullet");
+		createBody(position);
+		createFixture();
+		setVelocity(facingRight);
 
 		hasContacted = false;
 
@@ -36,44 +36,62 @@ public class Bullet {
 		filter.categoryBits = 4;
 		filter.groupIndex = -1;
 		filter.maskBits = 1 | 8; // Ground and enemy
-		bodyFixture.setFilterData(filter);
+		fixture.setFilterData(filter);
 	}
 
-	private void setBodyDef(Vector2 playerpos) {
-		BodyDef bulletdef = new BodyDef();
-		bulletdef.position.set(playerpos);
-		bulletdef.type = BodyDef.BodyType.DynamicBody;
-		//bulletdef.bullet = true;
-		body = world.createBody(bulletdef);
-		body.setGravityScale(0f);
-		body.setSleepingAllowed(false);
-		body.setFixedRotation(true);
+	private void createBody(Vector2 playerpos) {
+		BodyDef bodyDef = new BodyDef();
+		bodyDef.position.set(playerpos);
+		bodyDef.fixedRotation = true;
+		bodyDef.allowSleep = false;
+		bodyDef.gravityScale = 0f;
+		bodyDef.type = BodyDef.BodyType.DynamicBody;
+
+		body = world.createBody(bodyDef);
 	}
 
-	private void setFixtureDef() {
+	private void createFixture() {
 		PolygonShape shape = new PolygonShape();
 		shape.setAsBox(2f, 2f);
-		FixtureDef bulletfdef = new FixtureDef();
-		bulletfdef.shape = shape;
-		bulletfdef.filter.groupIndex = -1;
-		body.setUserData("bullet");
+		FixtureDef fixtureDef = new FixtureDef();
+		fixtureDef.shape = shape;
+		fixtureDef.filter.groupIndex = -1;
 		// group index explanation:
 		// Collision groups let you specify an integral group index.
 		// You can have all fixtures with the same group index always collide (positive index)
 		// or never collide (negative index).
 
-		// basically you put everything that you want together in a group, and decide whether or not you want
-		// them all to collide or not by using a positive or negative hexadecimal or integer
-		// works similar to a category bit but far more general
-		bodyFixture = body.createFixture(bulletfdef);
+		fixture = body.createFixture(fixtureDef);
 		shape.dispose();
+
+		fixture.setUserData(this);
 	}
 
 	private void setVelocity(boolean facingRight) {
 		if (facingRight) {
-			body.setLinearVelocity(500000, 0);
+			body.setLinearVelocity(1000, 0);
 		} else {
-			body.setLinearVelocity(-500000, 0);
+			body.setLinearVelocity(-1000, 0);
 		}
+	}
+
+	public void update(){
+
+	}
+
+	public void render(SpriteBatch spriteBatch){
+
+	}
+
+	public boolean shouldBeDestroyed(){
+		return hasContacted;
+	}
+
+	public Body getBody(){
+		return body;
+	}
+
+	public void destroy(){
+		world.destroyBody(body);
 	}
 }
