@@ -22,7 +22,7 @@ public class Map {
 	Vector2 arV2ESpwn[];
 
 
-	Map(World world, String mapName) {
+	public Map(World world, String mapName) {
 		this.mapName = mapName;
 		mapObjectParser = new Box2DMapObjectParser();
 		mapObjectParser.load(world, new TmxMapLoader().load("maps/" + mapName + ".tmx"));

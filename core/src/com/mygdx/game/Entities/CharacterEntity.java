@@ -1,4 +1,4 @@
-package com.mygdx.game;
+package com.mygdx.game.Entities;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.Animation;
@@ -19,13 +19,14 @@ import com.badlogic.gdx.physics.box2d.World;
 public abstract class CharacterEntity implements Entity {
 	World world;
 	Body body;
-	Fixture fixture, footSensor;
+	Fixture fixture;
+	public Fixture footSensor;
 	private Animation aniIdle, aniMove;
 	boolean bRight;    // If the character is facing right, facing left otherwise
 	boolean isIdle;    // If the character isn't moving (play idle animation)
 
 	// TODO: Find a way to figure out we're on the ground internally
-	/*private*/ boolean isGrounded; // If the character is on the ground
+	/*private*/ public boolean isGrounded; // If the character is on the ground
 	private float animationTime;
 
 	CharacterEntity(World world, Vector2 position, String animationName) {

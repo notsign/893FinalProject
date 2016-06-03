@@ -1,9 +1,7 @@
-package com.mygdx.game;
+package com.mygdx.game.Screens;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
-import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -19,16 +17,21 @@ import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.physics.box2d.World;
+import com.mygdx.game.Entities.Bullet;
+import com.mygdx.game.Entities.EnemySpawner;
+import com.mygdx.game.Entities.Entity;
+import com.mygdx.game.Entities.FastEnemy;
+import com.mygdx.game.Map;
+import com.mygdx.game.Entities.Player;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 /**
- * Created by k9sty on 2016-03-12.
+ * Created by Kevin on 03/06/2016.
  */
-
-public class ScreenMain implements Screen {
+public class GameScreen implements Screen {
 	Game game;
 	World world;
 	Map map;
@@ -41,7 +44,7 @@ public class ScreenMain implements Screen {
 	List<Entity> entityList;
 	List<Entity> entityBuffer;
 
-	ScreenMain(Game game) {
+	public GameScreen(Game game) {
 		this.game = game;
 
 		spriteBatch = new SpriteBatch();

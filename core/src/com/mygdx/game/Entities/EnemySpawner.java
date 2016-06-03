@@ -1,16 +1,10 @@
-package com.mygdx.game;
+package com.mygdx.game.Entities;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
-import com.badlogic.gdx.physics.box2d.BodyDef;
-import com.badlogic.gdx.physics.box2d.Fixture;
-import com.badlogic.gdx.physics.box2d.FixtureDef;
-import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -23,9 +17,9 @@ public class EnemySpawner implements Entity {
 	List<Entity> entityBuffer; // Reference to the main entityList
 	int spawnTimer;
 	int maxEnemies;
-	Player player;
+	com.mygdx.game.Entities.Player player;
 
-	EnemySpawner(World world, List<Entity> entityBuffer, Player player, Vector2 position, int maxEnemies) {
+	public EnemySpawner(World world, List<Entity> entityBuffer, com.mygdx.game.Entities.Player player, Vector2 position, int maxEnemies) {
 		this.world = world;
 		this.entityBuffer = entityBuffer;
 		this.player = player;
@@ -35,7 +29,7 @@ public class EnemySpawner implements Entity {
 	}
 
 	void createEnemy() {
-		entityBuffer.add(new FastEnemy(world, player, position));
+		entityBuffer.add(new com.mygdx.game.Entities.FastEnemy(world, player, position));
 	}
 
 	public void render(SpriteBatch spriteBatch) {

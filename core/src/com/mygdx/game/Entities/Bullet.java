@@ -1,4 +1,4 @@
-package com.mygdx.game;
+package com.mygdx.game.Entities;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
@@ -20,7 +20,7 @@ public class Bullet implements Entity {
 	World world;
 	Entity owner;
 
-	boolean hasContacted;
+	public boolean hasContacted;
 
 	protected Bullet(World world, Entity owner, Vector2 position, boolean facingRight) {
 		this.world = world;

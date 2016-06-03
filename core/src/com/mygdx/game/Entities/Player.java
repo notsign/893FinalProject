@@ -1,4 +1,4 @@
-package com.mygdx.game;
+package com.mygdx.game.Entities;
 
 import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
@@ -7,7 +7,6 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Filter;
 import com.badlogic.gdx.physics.box2d.World;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -21,7 +20,7 @@ public class Player extends CharacterEntity {
 	int bulletCooldown;
 	List<Entity> entityBuffer;
 
-	Player(World world, Vector2 position, List<Entity> entityBuffer) {
+	public Player(World world, Vector2 position, List<Entity> entityBuffer) {
 		super(world, position, "player");
 
 		this.entityBuffer = entityBuffer;

@@ -1,4 +1,4 @@
-package com.mygdx.game;
+package com.mygdx.game.Entities;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Filter;
@@ -11,7 +11,7 @@ import com.badlogic.gdx.physics.box2d.World;
 //more types of enemies will be added
 public class FastEnemy extends CharacterEntity {
 	Player player; // Our own reference to the player
-	boolean isAlive;
+	public boolean isAlive;
 
 	FastEnemy(World world, Player player, Vector2 spawnposition) {
 		super(world, spawnposition, "player"); // No sprite for enemy yet :c
