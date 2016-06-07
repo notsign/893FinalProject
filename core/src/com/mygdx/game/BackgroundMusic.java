@@ -3,14 +3,14 @@ package com.mygdx.game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Music;
 
-public class BGM implements Music {
+public class BackgroundMusic implements Music {
 
 	// purpose of class is just to play the music defined in the .tmx file
 	// only thing to really look at is the constructor otherwise who cares
 
 	Music music;
 
-	BGM(String bgm) {
+	BackgroundMusic(String bgm) {
 		music = Gdx.audio.newMusic(Gdx.files.internal("bgm/" + bgm + ".ogg"));
 	}
 

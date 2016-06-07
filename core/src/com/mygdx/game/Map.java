@@ -14,13 +14,11 @@ import net.dermetfan.gdx.physics.box2d.Box2DMapObjectParser;
  * Created by k9sty on 2015-11-20.
  */
 public class Map {
-
 	Box2DMapObjectParser mapObjectParser;
 	String mapName;
-	BGM bgm;
+	BackgroundMusic bgm;
 	int i, nSpawners;
 	Vector2 arV2ESpwn[];
-
 
 	public Map(World world, String mapName) {
 		this.mapName = mapName;
@@ -32,7 +30,7 @@ public class Map {
 		mapObjectParser.getFixtures();
 		mapObjectParser.getJoints();
 		// everything involving music below
-		bgm = new BGM(getBGM());
+		bgm = new BackgroundMusic(getBGM());
 		bgm.setLooping(true);
 		bgm.setVolume(0.1f);
 		bgm.play();
