@@ -1,7 +1,8 @@
-package com.mygdx.game;
+package team893.megaboy;
 
 import com.badlogic.gdx.Game;
-import com.mygdx.game.Screens.GameScreen;
+
+import team893.megaboy.screens.GameScreen;
 
 public class MainGame extends Game {
 

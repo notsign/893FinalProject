@@ -1,4 +1,4 @@
-package com.mygdx.game.Screens;
+package team893.megaboy.screens;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
@@ -17,12 +17,13 @@ import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.physics.box2d.World;
-import com.mygdx.game.Entities.Bullet;
-import com.mygdx.game.Entities.EnemySpawner;
-import com.mygdx.game.Entities.Entity;
-import com.mygdx.game.Entities.FastEnemy;
-import com.mygdx.game.Map;
-import com.mygdx.game.Entities.Player;
+
+import team893.megaboy.entities.Bullet;
+import team893.megaboy.entities.EnemySpawner;
+import team893.megaboy.entities.FastEnemy;
+import team893.megaboy.entities.Entity;
+import team893.megaboy.entities.Player;
+import team893.megaboy.Map;
 
 import java.util.ArrayList;
 import java.util.Iterator;

@@ -1,4 +1,4 @@
-package com.mygdx.game;
+package team893.megaboy;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Music;

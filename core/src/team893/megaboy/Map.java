@@ -1,4 +1,4 @@
-package com.mygdx.game;
+package team893.megaboy;
 
 import com.badlogic.gdx.maps.MapLayer;
 import com.badlogic.gdx.maps.MapObjects;
