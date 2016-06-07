@@ -14,35 +14,28 @@ import net.dermetfan.gdx.physics.box2d.Box2DMapObjectParser;
  * Created by k9sty on 2015-11-20.
  */
 public class Map {
+	TiledMap tiledMap;
 	Box2DMapObjectParser mapObjectParser;
-	String mapName;
-	BackgroundMusic bgm;
-	int i, nSpawners;
-	Vector2 arV2ESpwn[];
+	BackgroundMusic backgroundMusic;
 
 	public Map(World world, String mapName) {
-		this.mapName = mapName;
+		TmxMapLoader mapLoader = new TmxMapLoader();
+		tiledMap = mapLoader.load("maps/"+mapName+".tmx");
 		mapObjectParser = new Box2DMapObjectParser();
-		mapObjectParser.load(world, new TmxMapLoader().load("maps/" + mapName + ".tmx"));
-		// body that always exists is "level", which wraps the whole map
-		mapObjectParser.getBodies();
-		// fixtures is everything else, used so i can define filters
-		mapObjectParser.getFixtures();
-		mapObjectParser.getJoints();
-		// everything involving music below
-		bgm = new BackgroundMusic(getBGM());
-		bgm.setLooping(true);
-		bgm.setVolume(0.1f);
-		bgm.play();
-		// end music
+		mapObjectParser.load(world, tiledMap);
+		mapObjectParser.setUnitScale(0.5f);
+
+		backgroundMusic = new BackgroundMusic(getBackgroundMusicName());
+		backgroundMusic.setLooping(true);
+		backgroundMusic.setVolume(0.1f);
+		backgroundMusic.play();
 	}
 
 	public TiledMap getMap() {
-		return new TmxMapLoader().load("maps/" + this.mapName + ".tmx");
+		return tiledMap;
 	}
 
 	public float getUnitScale() {
-		mapObjectParser.setUnitScale(0.5f);
 		// IMPORTANT!!!
 		// mapObjectParser's UnitScale is set to a half because of the way box2d works.
 		// box2d uses meters, and there is a cap on velocity. i scale everything down so i don't
@@ -50,11 +43,9 @@ public class Map {
 		return mapObjectParser.getUnitScale();
 	}
 
-	public String getBGM() {
-		String BGM = (String) getMap().getLayers().get("World").getObjects().get("level").getProperties().get("bgm");
-		System.out.println(BGM);
+	public String getBackgroundMusicName() {
 		// in the .tmx file, the entire level is wrapped in one object named "level" which contains the name of the background music
-		return BGM;
+		return (String)getMap().getLayers().get("World").getObjects().get("level").getProperties().get("bgm");
 	}
 
 	public Vector2 getPlayerSpawnPoint() {
@@ -67,16 +58,12 @@ public class Map {
 	public Vector2[] getEnemySpawnPoints() {
 		MapLayer layer = this.getMap().getLayers().get("Enemy Spawners");
 		MapObjects objects = layer.getObjects();
-		nSpawners = objects.getCount();
-		arV2ESpwn = new Vector2[nSpawners];
-		for (i = 0; i < nSpawners; i++) {
+		int nSpawners = objects.getCount();
+		Vector2 spawnPoints[] = new Vector2[nSpawners];
+		for (int i = 0; i < nSpawners; i++) {
 			RectangleMapObject enemyspawn = (RectangleMapObject) objects.get("Espawner" + (i + 1));
-			arV2ESpwn[i] = new Vector2(enemyspawn.getRectangle().getX(), enemyspawn.getRectangle().getY());
+			spawnPoints[i] = new Vector2(enemyspawn.getRectangle().getX(), enemyspawn.getRectangle().getY());
 		}
-		return arV2ESpwn;
-	}
-
-	void pauseBGM() {
-		bgm.pause();
+		return spawnPoints;
 	}
 }
