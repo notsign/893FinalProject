@@ -50,7 +50,7 @@ public class GameScreen implements Screen {
 
 		spriteBatch = new SpriteBatch();
 		entityList = new ArrayList<Entity>();
-		entityBuffer = new ArrayList<Entity>(); // So updating entities can add entities to the list
+		entityBuffer = new ArrayList<Entity>(); // So entities that are updating can add entities to the list
 
 		initializeWorld();
 		initializeCamera();
@@ -60,11 +60,12 @@ public class GameScreen implements Screen {
 
 	private void initializeWorld() {
 		world = new World(new Vector2(0f, -200f), true);
-		// create contact listener in the class itself so i don't need to turn every variable into a static when i call it
+
+		// Collision detection!!
+		// TODO: Should this be delegated?
 		world.setContactListener(new ContactListener() {
 			public void beginContact(Contact contact) {
-				// K: Sensor code must be here!!
-				// Sensor collisions aren't honoured in postSolve
+				// Sensor collisions aren't honoured in postSolve, so it has to be here
 				Fixture fixtureA = contact.getFixtureA();
 				Fixture fixtureB = contact.getFixtureB();
 
@@ -100,10 +101,13 @@ public class GameScreen implements Screen {
 
 			@Override
 			public void postSolve(Contact contact, ContactImpulse impulse) {
+				// We set fixture userdata to the 'this' reference in these classes
+				// Basically, we check if the reference is to a Bullet or an Enemy and apply
+				// collision depending
+
 				Object udata1 = contact.getFixtureA().getUserData();
 				Object udata2 = contact.getFixtureB().getUserData();
 
-				// We set userdata to the this pointer in these classes
 				Bullet bullet = (udata1 instanceof Bullet) ? (Bullet)udata1
 						: (udata2 instanceof Bullet) ? (Bullet)udata2
 						: null;
@@ -112,17 +116,18 @@ public class GameScreen implements Screen {
 						: (udata2 instanceof FastEnemy) ? (FastEnemy)udata2
 						: null;
 
-				if (enemy != null && bullet != null && !bullet.hasContacted) { // Enemy colliding with bullet
+				// Enemy colliding with bullet
+				if (enemy != null && bullet != null && !bullet.hasContacted) {
 					enemy.isAlive = false;
 				}
 
+				// Bullet colliding with something
 				if (bullet != null) {
 					bullet.hasContacted = true;
 				}
 			}
 		});
 
-		// pass world and desired map
 		map = new Map(world, "debugroom");
 	}
 
@@ -130,11 +135,10 @@ public class GameScreen implements Screen {
 		debugRenderer = new Box2DDebugRenderer();
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, 32 * (19 / 2), 32 * (10 / 2));
-		// tile size * first two digits of resolution give you a solid camera, i just divide by 2 for a better view
-		// two is a magic number
+		// Tile size * first two digits of resolution give you a solid camera, i just divide by 2 for a better view
+		// Two is a magic number
 		camera.update();
 		tiledMapRenderer = new OrthogonalTiledMapRenderer(map.getMap(), map.getUnitScale());
-		// important: go to getUnitScale function in Map
 	}
 
 	private void initializePlayer() {
@@ -144,8 +148,8 @@ public class GameScreen implements Screen {
 
 	private void initializeEnemySpawner() {
 		Vector2[] arEnemySpawnPoints = map.getEnemySpawnPoints();
-		for (int i = 0; i < arEnemySpawnPoints.length; i++) {
-			entityList.add(new EnemySpawner(world, entityBuffer, player, arEnemySpawnPoints[i], 5));
+		for (Vector2 arEnemySpawnPoint : arEnemySpawnPoints) {
+			entityList.add(new EnemySpawner(world, entityBuffer, player, arEnemySpawnPoint, 5));
 		}
 	}
 
@@ -156,9 +160,12 @@ public class GameScreen implements Screen {
 
 	@Override
 	public void render(float delta) {
-		for (Entity entity : entityList)
+		// Let all our entities update
+		for (Entity entity : entityList) {
 			entity.update();
+		}
 
+		// Add the entities added by the updating entities to the main list
 		Iterator<Entity> entityBufferIterator = entityBuffer.iterator();
 		while (entityBufferIterator.hasNext()) {
 			Entity entity = entityBufferIterator.next();
@@ -170,23 +177,25 @@ public class GameScreen implements Screen {
 
 		clean(); // Remove dead enemies and collided bullets
 
-		camera.position.set(new Vector3(player.getPosition().x, player.getPosition().y, 0f)); // Center the screen on the player
-		camera.update(); // Lol idk
+		camera.position.set(new Vector3(player.getPosition().x, player.getPosition().y, 0f));
+		camera.update();
 
-		// Rendering things...
+		// Render stuff below
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT); // Clear the screen
 
 		tiledMapRenderer.setView(camera);
 		tiledMapRenderer.render(); // Render the map
-		debugRenderer.render(world, camera.combined); // Render the outlines on objects
+		debugRenderer.render(world, camera.combined); // Render the debug outlines on objects
 
+		// Set the projection matrix to the camera's so the sprites line up with the camera
 		spriteBatch.setProjectionMatrix(camera.combined);
-		// set the projection matrix as the camera so the tile layer on the map lines up with the bodies
-		// if this line wasn't here it wouldn't scale down
+
 		spriteBatch.begin();
-		for (Entity entity : entityList)
+
+		for (Entity entity : entityList) {
 			entity.render(spriteBatch);
+		}
 
 		spriteBatch.end();
 	}
