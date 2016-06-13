@@ -18,6 +18,7 @@ import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.physics.box2d.World;
 
+import team893.megaboy.MainGame;
 import team893.megaboy.entities.Bullet;
 import team893.megaboy.entities.EnemySpawner;
 import team893.megaboy.entities.FastEnemy;
@@ -33,7 +34,7 @@ import java.util.List;
  * Created by Kevin on 03/06/2016.
  */
 public class GameScreen implements Screen {
-	Game game;
+	MainGame game;
 	World world;
 	Map map;
 	OrthographicCamera camera;
@@ -45,7 +46,7 @@ public class GameScreen implements Screen {
 	List<Entity> entityList;
 	List<Entity> entityBuffer;
 
-	public GameScreen(Game game) {
+	public GameScreen(MainGame game) {
 		this.game = game;
 
 		spriteBatch = new SpriteBatch();
@@ -108,6 +109,10 @@ public class GameScreen implements Screen {
 				Object udata1 = contact.getFixtureA().getUserData();
 				Object udata2 = contact.getFixtureB().getUserData();
 
+				if (udata1 instanceof Player && udata2 instanceof FastEnemy
+						|| udata1 instanceof FastEnemy && udata2 instanceof Player)
+					player.health--;
+
 				Bullet bullet = (udata1 instanceof Bullet) ? (Bullet)udata1
 						: (udata2 instanceof Bullet) ? (Bullet)udata2
 						: null;
@@ -151,11 +156,6 @@ public class GameScreen implements Screen {
 		for (Vector2 arEnemySpawnPoint : arEnemySpawnPoints) {
 			entityList.add(new EnemySpawner(world, entityBuffer, player, arEnemySpawnPoint, 5));
 		}
-	}
-
-	@Override
-	public void show() {
-
 	}
 
 	@Override
@@ -204,6 +204,12 @@ public class GameScreen implements Screen {
 		// We have to remove stuff here instead of in the contact listener because it will crash
 		// because of (my guess) a ConcurrentModificationException.
 
+		if (player.shouldBeDestroyed()) {
+			player.destroy();
+			game.setScreen(MainGame.ScreenId.MENU);
+			return; // At this point this screen is abandoned
+		}
+
 		Iterator<Entity> entityIterator = entityList.iterator();
 		while (entityIterator.hasNext()) {
 			Entity entity = entityIterator.next();
@@ -214,6 +220,16 @@ public class GameScreen implements Screen {
 				entityIterator.remove();
 			}
 		}
+	}
+
+	@Override
+	public void show() {
+		map.backgroundMusic.play();
+	}
+
+	@Override
+	public void hide() {
+		map.backgroundMusic.pause();
 	}
 
 	@Override
@@ -228,11 +244,6 @@ public class GameScreen implements Screen {
 
 	@Override
 	public void resume() {
-
-	}
-
-	@Override
-	public void hide() {
 
 	}
 

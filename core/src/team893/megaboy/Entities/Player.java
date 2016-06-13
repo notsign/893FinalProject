@@ -16,7 +16,7 @@ import java.util.List;
 
 public class Player extends CharacterEntity {
 	final static int MAX_HEALTH = 3;
-	int health;
+	public int health;
 	int bulletCooldown;
 	List<Entity> entityBuffer;
 

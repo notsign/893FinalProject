@@ -16,7 +16,7 @@ import net.dermetfan.gdx.physics.box2d.Box2DMapObjectParser;
 public class Map {
 	TiledMap tiledMap;
 	Box2DMapObjectParser mapObjectParser;
-	BackgroundMusic backgroundMusic;
+	public BackgroundMusic backgroundMusic;
 
 	public Map(World world, String mapName) {
 		TmxMapLoader mapLoader = new TmxMapLoader();
