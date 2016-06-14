@@ -1,0 +1,18 @@
+UpButton.png
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+ArrowUp
+  rotate: false
+  xy: 2, 2
+  size: 96, 96
+  orig: 102, 100
+  offset: 4, 4
+  index: -1
+PressedArrowUp
+  rotate: false
+  xy: 100, 2
+  size: 96, 96
+  orig: 102, 97
+  offset: 4, 1
+index: -1
