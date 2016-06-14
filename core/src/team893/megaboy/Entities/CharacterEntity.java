@@ -126,7 +126,7 @@ public abstract class CharacterEntity implements Entity {
 		int width = trPlayer.getRegionWidth() / 2, height = trPlayer.getRegionHeight() / 2;
 
 		PolygonShape shape = new PolygonShape();
-		shape.setAsBox(width / 2f, 0.1f, new Vector2(body.getLocalCenter().x, body.getLocalCenter().y - height / 2f), 0f);
+		shape.setAsBox((width / 2.5f), 0.1f, new Vector2(body.getLocalCenter().x, body.getLocalCenter().y - (height / 2f) - 0.05f), 0f);
 
 		FixtureDef fixtureDef = new FixtureDef();
 		fixtureDef.shape = shape;

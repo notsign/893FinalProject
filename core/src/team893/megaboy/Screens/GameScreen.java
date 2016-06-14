@@ -73,11 +73,23 @@ public class GameScreen implements Screen {
 				if (fixtureA.isSensor() && fixtureB.isSensor())
 					return;
 
-				if (fixtureA == player.footSensor)
-					player.isGrounded = true;
+				if (fixtureA == player.footSensor) {
+					if (fixtureB.getUserData() instanceof FastEnemy) {
+						player.jump();
+						((FastEnemy)fixtureB.getUserData()).isAlive = false;
+					} else {
+						player.isGrounded = true;
+					}
+				}
 
-				else if (fixtureB == player.footSensor)
-					player.isGrounded = true;
+				else if (fixtureB == player.footSensor) {
+					if (fixtureA.getUserData() instanceof FastEnemy) {
+						player.jump();
+						((FastEnemy)fixtureA.getUserData()).isAlive = false;
+					} else {
+						player.isGrounded = true;
+					}
+				}
 			}
 
 			@Override
@@ -109,9 +121,13 @@ public class GameScreen implements Screen {
 				Object udata1 = contact.getFixtureA().getUserData();
 				Object udata2 = contact.getFixtureB().getUserData();
 
-				if (udata1 instanceof Player && udata2 instanceof FastEnemy
-						|| udata1 instanceof FastEnemy && udata2 instanceof Player)
-					player.health--;
+				if (udata1 instanceof Player && udata2 instanceof FastEnemy){
+					if (((FastEnemy)udata2).isAlive)
+						player.health--;
+				} else if (udata1 instanceof FastEnemy && udata2 instanceof Player) {
+					if(((FastEnemy)udata1).isAlive)
+						player.health--;
+				}
 
 				Bullet bullet = (udata1 instanceof Bullet) ? (Bullet)udata1
 						: (udata2 instanceof Bullet) ? (Bullet)udata2
