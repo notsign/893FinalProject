@@ -4,7 +4,10 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -38,12 +41,17 @@ public class MenuScreen implements Screen, InputProcessor {
 	Stage stage;
 	TextButton tbStart;
 
+	private Sprite spriteBack;
+    SpriteBatch batch = new SpriteBatch();
+
 	public MenuScreen(MainGame _game) {
 		this.game = _game;
 		stage = new Stage();
 
-		tbStart = new TextButton("Start da gam duyd", new TxtBtnBaseStyle());
-		tbStart.setPosition(0f, 0f);
+		spriteBack=new Sprite(new Texture(Gdx.files.internal("images/wall.png")));
+
+		tbStart = new TextButton("Start", new TxtBtnBaseStyle());
+		tbStart.setPosition(210f,20f);
 		tbStart.setSize(200f, 50f);
 		tbStart.addListener(new InputListener() {//http://gamedev.stackexchange.com/questions/60123/registering-inputlistener-in-libgdx
 			@Override
@@ -65,6 +73,10 @@ public class MenuScreen implements Screen, InputProcessor {
 	public void render(float delta) {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT); // Clear the screen
+
+        batch.begin();
+        spriteBack.draw(batch);
+        batch.end();
 
 		stage.act();
 		stage.draw();
