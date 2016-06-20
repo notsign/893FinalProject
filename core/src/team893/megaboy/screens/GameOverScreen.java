@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -17,16 +18,17 @@ import team893.megaboy.MainGame;
 public class GameOverScreen implements Screen, InputProcessor {
 	MainGame game;
 	Stage stage;
-	TextButton tbStart;
+	TextButton tbMainMenu;
+	TextButton tbRespawn;
 
 	public GameOverScreen(MainGame _game) {
 		this.game = _game;
 		stage = new Stage();
 
-		tbStart = new TextButton("I wanna go to da menu", new TxtBtnBaseStyle());
-		tbStart.setPosition(0f, 0f);
-		tbStart.setSize(200f, 50f);
-		tbStart.addListener(new InputListener() {//http://gamedev.stackexchange.com/questions/60123/registering-inputlistener-in-libgdx
+		tbMainMenu = new TextButton("Main Menu", new TxtBtnBaseStyle());
+		tbMainMenu.setSize(200f, 50f);
+		tbMainMenu.setPosition(tbMainMenu.getWidth() / 2, tbMainMenu.getHeight() / 2);
+		tbMainMenu.addListener(new InputListener() {//http://gamedev.stackexchange.com/questions/60123/registering-inputlistener-in-libgdx
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 				game.setScreen(MainGame.ScreenId.MENU);
@@ -34,7 +36,19 @@ public class GameOverScreen implements Screen, InputProcessor {
 			}
 		});
 
-		stage.addActor(tbStart);
+		tbRespawn = new TextButton("Respawn", new TxtBtnBaseStyle());
+		tbRespawn.setSize(200f, 50f);
+		tbRespawn.setPosition(Gdx.graphics.getWidth() - tbRespawn.getWidth() * 1.5f, tbRespawn.getHeight() / 2);
+		tbRespawn.addListener(new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				game.setScreen(MainGame.ScreenId.GAME);
+				return true;
+			}
+		});
+
+		stage.addActor(tbMainMenu);
+		stage.addActor(tbRespawn);
 	}
 
 	@Override
