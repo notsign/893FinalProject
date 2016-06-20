@@ -222,7 +222,7 @@ public class GameScreen implements Screen {
 
 		if (player.shouldBeDestroyed()) {
 			player.destroy();
-			game.setScreen(MainGame.ScreenId.MENU);
+			game.setScreen(MainGame.ScreenId.GAMEOVER);
 			return; // At this point this screen is abandoned
 		}
 
