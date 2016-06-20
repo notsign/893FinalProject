@@ -41,18 +41,18 @@ public class MenuScreen implements Screen, InputProcessor {
 	Stage stage;
 	TextButton tbStart;
 
-	private Sprite spriteBack;
-    SpriteBatch batch = new SpriteBatch();
+	private Sprite sprBackground;
+    SpriteBatch spriteBatch = new SpriteBatch();
 
 	public MenuScreen(MainGame _game) {
 		this.game = _game;
 		stage = new Stage();
 
-		spriteBack=new Sprite(new Texture(Gdx.files.internal("images/wall.png")));
+		sprBackground = new Sprite(new Texture(Gdx.files.internal("images/wall.png")));
 
 		tbStart = new TextButton("Start", new TxtBtnBaseStyle());
-		tbStart.setPosition(210f,20f);
 		tbStart.setSize(200f, 50f);
+		tbStart.setPosition(Gdx.graphics.getWidth() / 2 - tbStart.getWidth() / 2, 20f);
 		tbStart.addListener(new InputListener() {//http://gamedev.stackexchange.com/questions/60123/registering-inputlistener-in-libgdx
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -74,9 +74,9 @@ public class MenuScreen implements Screen, InputProcessor {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT); // Clear the screen
 
-        batch.begin();
-        spriteBack.draw(batch);
-        batch.end();
+        spriteBatch.begin();
+        sprBackground.draw(spriteBatch);
+        spriteBatch.end();
 
 		stage.act();
 		stage.draw();
