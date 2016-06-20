@@ -49,6 +49,7 @@ public class MenuScreen implements Screen, InputProcessor {
 		stage = new Stage();
 
 		sprBackground = new Sprite(new Texture(Gdx.files.internal("images/wall.png")));
+		sprBackground.setSize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
 		tbStart = new TextButton("Start", new TxtBtnBaseStyle());
 		tbStart.setSize(200f, 50f);
